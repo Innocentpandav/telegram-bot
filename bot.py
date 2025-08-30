@@ -954,13 +954,7 @@ def main():
     logging.info("🤖 Bot is running...")
     print("🤖 Bot is running...")
     print("✅ Handlers registered:", app.handlers)
-    import asyncio
-    async def run():
-        await app.initialize()
-        await app.start()
-        await app.updater.start_polling()
-        await app.updater.idle()
-    asyncio.run(run())
+    app.run_polling()
 # --- Add reset_timer_callback ---
 async def reset_timer_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id

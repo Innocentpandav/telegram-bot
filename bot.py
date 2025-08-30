@@ -924,37 +924,37 @@ def main():
     token = os.environ.get("BOT_TOKEN_API")
     if not token:
         raise RuntimeError("❌ BOT_TOKEN_API not found.")
-    app = Application.builder().token(token).build()
+    application = Application.builder().token(token).build()
     # --- Start backup manager ---
     try:
         from backup_manager import BackupManager
-        backup_mgr = BackupManager(bot_app=app)
+        backup_mgr = BackupManager(bot_app=application)
         backup_mgr.start()
     except Exception as e:
         logging.error(f"Backup manager failed to start: {e}")
     # Global error handler
     async def error_handler(update, context):
         logging.error("Exception while handling an update:", exc_info=context.error)
-    app.add_error_handler(error_handler)
-    app.add_handler(CommandHandler("start", start))
-    app.add_handler(CommandHandler("summery", summery_command))
+    application.add_error_handler(error_handler)
+    application.add_handler(CommandHandler("start", start))
+    application.add_handler(CommandHandler("summery", summery_command))
     # Single text handler for summary flow and main menu
-    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, message_handler))
-    app.add_handler(CallbackQueryHandler(rules_callback, pattern="^(accept_rules|reject_rules)$"))
-    app.add_handler(CallbackQueryHandler(confirm_done_callback, pattern="^confirm_done$"))
-    app.add_handler(CallbackQueryHandler(reset_timer_callback, pattern="^reset_timer$"))
-    app.add_handler(CallbackQueryHandler(buy_points_option_callback, pattern=r"^buy_points_\d+$"))
-    app.add_handler(MessageHandler(filters.PHOTO, screenshot_handler))
-    app.add_handler(CommandHandler("post", post))
-    app.add_handler(CommandHandler("buy5", buy5))
-    app.add_handler(CommandHandler("role", role))
+    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, message_handler))
+    application.add_handler(CallbackQueryHandler(rules_callback, pattern="^(accept_rules|reject_rules)$"))
+    application.add_handler(CallbackQueryHandler(confirm_done_callback, pattern="^confirm_done$"))
+    application.add_handler(CallbackQueryHandler(reset_timer_callback, pattern="^reset_timer$"))
+    application.add_handler(CallbackQueryHandler(buy_points_option_callback, pattern=r"^buy_points_\d+$"))
+    application.add_handler(MessageHandler(filters.PHOTO, screenshot_handler))
+    application.add_handler(CommandHandler("post", post))
+    application.add_handler(CommandHandler("buy5", buy5))
+    application.add_handler(CommandHandler("role", role))
     # Register payment handlers
-    app.add_handler(PreCheckoutQueryHandler(precheckout_callback))
-    app.add_handler(MessageHandler(ext_filters.SUCCESSFUL_PAYMENT, successful_payment_callback))
+    application.add_handler(PreCheckoutQueryHandler(precheckout_callback))
+    application.add_handler(MessageHandler(ext_filters.SUCCESSFUL_PAYMENT, successful_payment_callback))
     logging.info("🤖 Bot is running...")
     print("🤖 Bot is running...")
-    print("✅ Handlers registered:", app.handlers)
-    app.run_polling()
+    print("✅ Handlers registered:", application.handlers)
+    application.run_polling(allowed_updates=Update.ALL_TYPES)
 # --- Add reset_timer_callback ---
 async def reset_timer_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
@@ -968,8 +968,4 @@ async def reset_timer_callback(update: Update, context: ContextTypes.DEFAULT_TYP
 
 
 if __name__ == "__main__":
-    import sys
-    if sys.platform == "win32":
-        import asyncio
-        asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
     main()

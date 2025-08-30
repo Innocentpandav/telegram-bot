@@ -913,41 +913,29 @@ async def role(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 
-import asyncio
-async def main():
-    await init_db(CONFIG['db_path'], 'schema.sql')
-    token = os.environ.get("BOT_TOKEN_API")
-    if not token:
-        raise RuntimeError("❌ BOT_TOKEN_API not found.")
-    application = Application.builder().token(token).build()
-    # --- Start backup manager ---
-    try:
-        from backup_manager import BackupManager
-        backup_mgr = BackupManager(bot_app=application)
-        backup_mgr.start()
-    except Exception as e:
-        logging.error(f"Backup manager failed to start: {e}")
-    # Global error handler
-    async def error_handler(update, context):
-        logging.error("Exception while handling an update:", exc_info=context.error)
-    application.add_error_handler(error_handler)
+from telegram.ext import Application, CommandHandler, MessageHandler, CallbackQueryHandler, PreCheckoutQueryHandler, filters
+from telegram import Update
+
+def main():
+    application = Application.builder().token(os.getenv("BOT_TOKEN_API")).build()
+
+    # register your handlers
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler("summery", summery_command))
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, message_handler))
-    application.add_handler(CallbackQueryHandler(rules_callback, pattern="^(accept_rules|reject_rules)$"))
-    application.add_handler(CallbackQueryHandler(confirm_done_callback, pattern="^confirm_done$"))
-    application.add_handler(CallbackQueryHandler(reset_timer_callback, pattern="^reset_timer$"))
-    application.add_handler(CallbackQueryHandler(buy_points_option_callback, pattern=r"^buy_points_\d+$"))
+    application.add_handler(CallbackQueryHandler(rules_callback, pattern="rules"))
+    application.add_handler(CallbackQueryHandler(confirm_done_callback, pattern="confirm_done"))
+    application.add_handler(CallbackQueryHandler(reset_timer_callback, pattern="reset_timer"))
+    application.add_handler(CallbackQueryHandler(buy_points_option_callback, pattern="buy_points"))
     application.add_handler(MessageHandler(filters.PHOTO, screenshot_handler))
     application.add_handler(CommandHandler("post", post))
     application.add_handler(CommandHandler("buy5", buy5))
     application.add_handler(CommandHandler("role", role))
     application.add_handler(PreCheckoutQueryHandler(precheckout_callback))
-    application.add_handler(MessageHandler(ext_filters.SUCCESSFUL_PAYMENT, successful_payment_callback))
-    logging.info("🤖 Bot is running...")
+    application.add_handler(MessageHandler(filters.SUCCESSFUL_PAYMENT, successful_payment_callback))
+
     print("🤖 Bot is running...")
-    print("✅ Handlers registered:", application.handlers)
-    await application.run_polling(allowed_updates=Update.ALL_TYPES)
+    application.run_polling(allowed_updates=Update.ALL_TYPES)  # ✅ no asyncio.run()
 # --- Add reset_timer_callback ---
 async def reset_timer_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
@@ -961,4 +949,4 @@ async def reset_timer_callback(update: Update, context: ContextTypes.DEFAULT_TYP
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    main()

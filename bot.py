@@ -912,15 +912,10 @@ async def role(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text("❌ Only admins can set roles.")
 
 
-def main():
-    import asyncio
-    asyncio.run(init_db(CONFIG['db_path'], 'schema.sql'))
-    # Ensure an event loop exists in the main thread for python-telegram-bot
-    try:
-        asyncio.get_event_loop()
-    except RuntimeError:
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
+
+import asyncio
+async def main():
+    await init_db(CONFIG['db_path'], 'schema.sql')
     token = os.environ.get("BOT_TOKEN_API")
     if not token:
         raise RuntimeError("❌ BOT_TOKEN_API not found.")
@@ -938,7 +933,6 @@ def main():
     application.add_error_handler(error_handler)
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler("summery", summery_command))
-    # Single text handler for summary flow and main menu
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, message_handler))
     application.add_handler(CallbackQueryHandler(rules_callback, pattern="^(accept_rules|reject_rules)$"))
     application.add_handler(CallbackQueryHandler(confirm_done_callback, pattern="^confirm_done$"))
@@ -948,13 +942,12 @@ def main():
     application.add_handler(CommandHandler("post", post))
     application.add_handler(CommandHandler("buy5", buy5))
     application.add_handler(CommandHandler("role", role))
-    # Register payment handlers
     application.add_handler(PreCheckoutQueryHandler(precheckout_callback))
     application.add_handler(MessageHandler(ext_filters.SUCCESSFUL_PAYMENT, successful_payment_callback))
     logging.info("🤖 Bot is running...")
     print("🤖 Bot is running...")
     print("✅ Handlers registered:", application.handlers)
-    application.run_polling(allowed_updates=Update.ALL_TYPES)
+    await application.run_polling(allowed_updates=Update.ALL_TYPES)
 # --- Add reset_timer_callback ---
 async def reset_timer_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
@@ -968,4 +961,4 @@ async def reset_timer_callback(update: Update, context: ContextTypes.DEFAULT_TYP
 
 
 if __name__ == "__main__":
-    main()
+    asyncio.run(main())

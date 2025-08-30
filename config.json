@@ -1,0 +1,7 @@
+{
+  "db_path": "bot.db",
+  "storage_folder": "storage",
+  "jsonl_max_entries": 1000,
+  "admin_user_ids": ["6972153969","1007238161"],
+  "admin_usernames": ["@PANDAGROUPS_O", "@ludacris12"]
+}

@@ -1,30 +1,32 @@
 # Use an official Python base image
 FROM python:3.11-slim
 
-# Prevents Python from writing .pyc files and buffering stdout
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1
 
-# Install system dependencies (tesseract, fonts, sqlite3, etc.)
+# Install apt packages including tesseract
 RUN apt-get update && apt-get install -y --no-install-recommends \
     tesseract-ocr \
+    tesseract-ocr-eng \
     libtesseract-dev \
     libleptonica-dev \
+    build-essential \
     sqlite3 \
     && rm -rf /var/lib/apt/lists/*
 
-# Set work directory
 WORKDIR /app
 
-# Copy dependency files first (better layer caching)
+# Copy dependency files first for better cache
 COPY requirements.txt .
-COPY apt.txt .
 
-# Install Python deps
+# Install python deps
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy the rest of the project
+# Copy the rest of your project
 COPY . .
+
+# Ensure storage dir exists
+RUN mkdir -p storage posts || true
 
 # Default command
 CMD ["python", "app.py"]

@@ -953,6 +953,7 @@ def main():
     app.add_handler(MessageHandler(ext_filters.SUCCESSFUL_PAYMENT, successful_payment_callback))
     logging.info("🤖 Bot is running...")
     print("🤖 Bot is running...")
+    print("✅ Handlers registered:", app.handlers)
     import asyncio
     async def run():
         await app.initialize()
